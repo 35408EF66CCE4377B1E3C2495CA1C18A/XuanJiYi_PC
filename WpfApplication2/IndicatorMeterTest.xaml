@@ -1,0 +1,11 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ZhongLiuCang="clr-namespace:ZhongLiuCang" x:Class="Tai_Shi_Xuan_Ji_Yi.IndicatorMeterTest"
+        Title="IndicatorMeterTest" Height="300" Width="300">
+    <Grid>
+
+        <ZhongLiuCang:IndicatorMeter HorizontalAlignment="Left" Margin="48,37,0,0" VerticalAlignment="Top" IndicatorBarBackground="#FFD63030" RangeBarBackground="#FFD16262" IndicatorValue="419" Max="480" Min="318" RangeBarMin="322" RangeBarMax="404" />
+
+    </Grid>
+</Window>

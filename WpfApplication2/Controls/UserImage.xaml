@@ -1,0 +1,92 @@
+﻿<UserControl
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ed="http://schemas.microsoft.com/expression/2010/drawing"
+	mc:Ignorable="d"
+	x:Class="Tai_Shi_Xuan_Ji_Yi.UserImage"
+	x:Name="UserControl" d:DesignHeight="480" Width="180" Height="60" SnapsToDevicePixels="True">
+	<UserControl.Resources>
+		<Storyboard x:Key="sb_PopDetail" RepeatBehavior="1x">
+			<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" Storyboard.TargetName="callout">
+				<EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1">
+					<EasingDoubleKeyFrame.EasingFunction>
+						<ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="5"/>
+					</EasingDoubleKeyFrame.EasingFunction>
+				</EasingDoubleKeyFrame>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" Storyboard.TargetName="callout">
+				<EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1">
+					<EasingDoubleKeyFrame.EasingFunction>
+						<ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="5"/>
+					</EasingDoubleKeyFrame.EasingFunction>
+				</EasingDoubleKeyFrame>
+			</DoubleAnimationUsingKeyFrames>
+			<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)" Storyboard.TargetName="callout">
+				<DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}"/>
+				<DiscreteObjectKeyFrame KeyTime="0:0:0.6" Value="{x:Static Visibility.Visible}"/>
+			</ObjectAnimationUsingKeyFrames>
+		</Storyboard>
+	</UserControl.Resources>
+
+	<Grid x:Name="LayoutRoot" Background="{DynamicResource 标题蓝色}" Focusable="True">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="60"/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="20"/>
+		</Grid.ColumnDefinitions>
+		<Image Stretch="Fill" Source="/Tai_Shi_Xuan_Ji_Yi;component/Images/Cute-taylor-swift-Low.jpg">
+			<Image.Clip>
+				<EllipseGeometry
+					RadiusX="30"
+					RadiusY="30"
+					Center="30,30"/>
+			</Image.Clip>
+		</Image>
+		<Path Grid.Column="2" Data="M158.07812,21.796355 L165.075,28.824999 158.09375,35.836664 156.68333,34.195077 C156.68333,34.195077 162.09687,28.811822 162.09687,28.811822 162.09687,28.811822 156.625,23.231034 156.625,23.231034 z" Fill="White" HorizontalAlignment="Center" Height="9" Stretch="Fill" VerticalAlignment="Center" Width="5" RenderTransformOrigin="0.5,0.5">
+			<Path.RenderTransform>
+				<TransformGroup>
+					<ScaleTransform/>
+					<SkewTransform/>
+					<RotateTransform Angle="90"/>
+					<TranslateTransform/>
+				</TransformGroup>
+			</Path.RenderTransform>
+		</Path>
+		<TextBlock Grid.Column="1" HorizontalAlignment="Center" TextWrapping="Wrap" Text="登录用户1" VerticalAlignment="Center" Foreground="White" FontSize="16" Margin="0"/>
+		<ed:Callout x:Name="callout" AnchorPoint="0.15,-0.15" Grid.ColumnSpan="3" Fill="{DynamicResource 标题蓝色}" FontSize="14.667" Margin="0,40,0,-186" CalloutStyle="Rectangle" Height="115" RenderTransformOrigin="0.5,0.5" Visibility="Hidden">
+			<ed:Callout.RenderTransform>
+				<TransformGroup>
+					<ScaleTransform ScaleX="0.1" ScaleY="0.1"/>
+					<SkewTransform/>
+					<RotateTransform/>
+					<TranslateTransform/>
+				</TransformGroup>
+			</ed:Callout.RenderTransform>
+			<ed:Callout.Effect>
+				<DropShadowEffect BlurRadius="15" Opacity="0.5"/>
+			</ed:Callout.Effect>
+			<Grid Width="150">
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="45"/>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="工号" VerticalAlignment="Center" Foreground="White"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="姓名" VerticalAlignment="Center" Grid.Row="1" Foreground="White"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="部门" VerticalAlignment="Center" Grid.Row="2" Foreground="White"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="职务" VerticalAlignment="Center" Grid.Row="3" Foreground="White"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="CDI1043" VerticalAlignment="Center" Foreground="White" Margin="0,6.811" Grid.Column="1"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="李晨曦" VerticalAlignment="Center" Grid.Row="1" Foreground="White" Margin="0,6.811" Grid.Column="1"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Q&amp;A" VerticalAlignment="Center" Grid.Row="2" Foreground="White" Margin="0,6.811" Grid.Column="1"/>
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="经理" VerticalAlignment="Center" Grid.Row="3" Foreground="White" Margin="0,6.811" Grid.Column="1"/>
+			</Grid>
+		</ed:Callout>
+	</Grid>
+</UserControl>

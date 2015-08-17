@@ -1,0 +1,23 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ChartControl="clr-namespace:Tai_Shi_Xuan_Ji_Yi.ChartControl" x:Class="Tai_Shi_Xuan_Ji_Yi.ChartControlTest"
+        Title="ChartControlTest" Height="300" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="100"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <ChartControl:PanelLayout x:Name="chart" Grid.ColumnSpan="2" Margin="0,0,-0.4,0.4">
+           
+        </ChartControl:PanelLayout>
+        <Button x:Name="btn_AddPoint" Grid.ColumnSpan="2" Content="Add Point" HorizontalAlignment="Left" Margin="33,37.6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="121" Height="30" Click="btn_AddPoint_Click"/>
+        <TextBlock x:Name="txt_PointsCount" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="212,37.6,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

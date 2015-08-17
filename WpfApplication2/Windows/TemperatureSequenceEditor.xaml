@@ -1,0 +1,142 @@
+﻿<dx:DXWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Tai_Shi_Xuan_Ji_Yi="clr-namespace:Tai_Shi_Xuan_Ji_Yi.Controls"
+    xmlns:dxc="http://schemas.devexpress.com/winfx/2008/xaml/charts"
+    xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid" 
+    xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" 
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+	xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" 
+    xmlns:local="clr-namespace:Tai_Shi_Xuan_Ji_Yi.Controls"    
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    x:Class="Tai_Shi_Xuan_Ji_Yi.Windows.TemperatureSequenceEditor"  
+    dx:ThemeManager.ThemeName="MetropolisLight"
+    Title="温控序列编辑" 
+	Height="500" 
+	Width="800" 
+	WindowStartupLocation="CenterScreen" 
+	ResizeMode="NoResize" WindowStyle="ToolWindow">
+    <dx:DXWindow.Resources>
+        <DataTemplate x:Key="dropInfoTemplate">
+            <Border x:Name="border" Height="30" Width="150" BorderThickness="1">
+                <Border.Background>
+                    <Binding Path="DropTargetType">
+                        <Binding.Converter>
+                            <dx:EnumToObjectConverter DefaultValue="#FFF0F0F0">
+                                <dx:EnumToObjectConverter.Values>
+                                    <dx:EnumObjectProvider x:Key="None" Value="#FFEBADB4" />
+                                </dx:EnumToObjectConverter.Values>
+                            </dx:EnumToObjectConverter>
+                        </Binding.Converter>
+                    </Binding>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <Binding Path="DropTargetType">
+                        <Binding.Converter>
+                            <dx:EnumToObjectConverter DefaultValue="#FFC8C8C8">
+                                <dx:EnumToObjectConverter.Values>
+                                    <dx:EnumObjectProvider x:Key="None" Value="#FFFFD0D6" />
+                                </dx:EnumToObjectConverter.Values>
+                            </dx:EnumToObjectConverter>
+                        </Binding.Converter>
+                    </Binding>
+                </Border.BorderBrush>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="dropInfoText">
+                        <TextBlock.Text>
+                            <Binding Path="DropTargetType">
+                                <Binding.Converter>
+                                    <dx:EnumToObjectConverter>
+                                        <dx:EnumToObjectConverter.Values>
+                                            <dx:EnumObjectProvider x:Key="None" Value="禁止拖放到此处" />
+                                            <dx:EnumObjectProvider x:Key="DataArea" Value="添加新行" />
+                                            <dx:EnumObjectProvider x:Key="InsertRowsIntoGroup" Value="Move to group:" />
+                                            <dx:EnumObjectProvider x:Key="InsertRowsIntoNode" Value="Move to children collection:" />
+                                            <dx:EnumObjectProvider x:Key="InsertRowsAfter" Value="拖动以改变顺序" />
+                                            <dx:EnumObjectProvider x:Key="InsertRowsBefore" Value="拖动以改变顺序" />
+                                        </dx:EnumToObjectConverter.Values>
+                                    </dx:EnumToObjectConverter>
+                                </Binding.Converter>
+                            </Binding>
+                        </TextBlock.Text>
+                        <TextBlock.Foreground>
+                            <Binding Path="DropTargetType">
+                                <Binding.Converter>
+                                    <dx:EnumToObjectConverter DefaultValue="#FF303030">
+                                        <dx:EnumToObjectConverter.Values>
+                                            <dx:EnumObjectProvider x:Key="None" Value="#FFB34242" />
+                                        </dx:EnumToObjectConverter.Values>
+                                    </dx:EnumToObjectConverter>
+                                </Binding.Converter>
+                            </Binding>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger xmlns:interop="clr-namespace:System.Windows.Interop;assembly=PresentationFramework" Binding="{Binding Source={x:Static interop:BrowserInteropHelper.IsBrowserHosted}}" Value="True">
+                    <Setter Property="CornerRadius" TargetName="border" Value="0,0,0,0" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+        <DataTemplate x:Key="dragElementTemplate">
+            <ContentPresenter x:Name="dropInfo"  Content="{Binding}" ContentTemplate="{StaticResource dropInfoTemplate}" />
+            <!--<TextBlock Text="拖动以改变顺序" VerticalAlignment="Center" HorizontalAlignment="Center"></TextBlock>-->
+        </DataTemplate>
+
+    </dx:DXWindow.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="60"/>
+            <ColumnDefinition Width="60"/>
+            <ColumnDefinition Width="60"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="54"/>
+            <RowDefinition Height="85"/>
+            <RowDefinition/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="txt_Tip_Edit" Text="请在下面列表中输入保持时长和目标温度，以生成温控序列。&#xA; ● 拖动列表中的项目可以调整顺序。&#xA; ● 保持时间范围：10分钟~120分钟&#xA; ● 温度范围：25℃~70℃" TextWrapping="Wrap" Visibility="{Binding Visibility, ElementName=btn_New}" Grid.Row="1" Grid.ColumnSpan="4"/>
+        <TextBlock x:Name="txt_Tip_Load" Grid.Column="4" Text="请在左侧的下拉框里选择要加载的温度序列，&#xA; 然后点击加载按钮。" TextWrapping="Wrap" Margin="0,0,0,16.48" Visibility="{Binding Visibility, ElementName=btn_Load}" Height="0" VerticalAlignment="Bottom"/>
+        <local:StepAreaAndLineChart x:Name="chart1" RealtimeTemperatureVisible="False" Grid.RowSpan="4" Grid.Column="4"/>
+        <dxg:GridControl x:Name="grid_SequenceEdit"  AutoPopulateColumns="True" SelectionMode="Row"  Grid.Row="2" Margin="0" Grid.RowSpan="2" Grid.ColumnSpan="4" >
+            <dxg:GridControl.Columns>
+                <dxg:GridColumn FieldName="StartTime" Header="开始时间" VisibleIndex="0" AllowEditing="False" AllowAutoFilter="False" ReadOnly="True" AllowColumnFiltering="False">
+                    <dxg:GridColumn.EditSettings>
+                        <dxe:DateEditSettings DisplayFormat="HH:mm:ss"/>
+                    </dxg:GridColumn.EditSettings>
+                </dxg:GridColumn>
+                <dxg:GridColumn x:Name="colHoldTime" FieldName="HoldTime" Header="保持（分钟）" VisibleIndex="1"  >
+                    <dxg:GridColumn.EditSettings>
+                        <dxe:SpinEditSettings MinValue="10" MaxValue="120" Mask="F0"/>
+                    </dxg:GridColumn.EditSettings>
+                </dxg:GridColumn>
+                <dxg:GridColumn x:Name="colTargetTemperature" FieldName="TargetTemperature" Header="温度（℃）" VisibleIndex="2" >
+                    <dxg:GridColumn.EditSettings>
+                        <dxe:SpinEditSettings MinValue="25" MaxValue="70" Mask="F1"/>
+                    </dxg:GridColumn.EditSettings>
+                </dxg:GridColumn>
+            </dxg:GridControl.Columns>
+            <dxmvvm:Interaction.Behaviors>
+                <dxg:GridDragDropManager Dropped="GridDragDropManager_Dropped" DragElementTemplate="{StaticResource dragElementTemplate}"/>
+            </dxmvvm:Interaction.Behaviors>
+            <dxg:GridControl.View>
+                <dxg:TableView x:Name="view2" ShowGroupPanel="False"  AutoWidth="True" NewItemRowPosition="Bottom" AllowColumnMoving="False" AllowDateTimeGroupIntervalMenu="False" AllowGrouping="False" AllowScrollHeaders="False" AllowSorting="False" AllowColumnFiltering="False" AllowFilterEditor="False" AllowPerPixelScrolling="True" InitNewRow="view2_InitNewRow" CellValueChanged="view2_CellValueChanged" RowMinHeight="35">
+                    <dxg:TableView.RowCellMenuCustomizations>
+                        <dxb:BarButtonItem x:Name="deleteRowItem" Content="删除" Command="{x:Static dxg:GridCommands.DeleteFocusedRow}" />
+                    </dxg:TableView.RowCellMenuCustomizations>
+                </dxg:TableView>
+            </dxg:GridControl.View>
+        </dxg:GridControl>
+        <Button x:Name="btn_Load" Content="加载" VerticalAlignment="Bottom" Margin="15,0,32,16" Height="0" Visibility="Hidden" Click="btn_Load_Click" Grid.Column="2"/>
+        <Button x:Name="btn_New" Content="新建" Click="btn_New_Click" Grid.Column="1" Margin="2,10"/>
+        <Button x:Name="btn_Save" Content="保存" Click="btn_Save_Click" Grid.Column="2" Margin="2,10"/>
+        <Button x:Name="btn_Delete" Content="删除" Click="btn_Delete_Click" Grid.Column="3" Margin="2,10"/>
+        <ComboBox x:Name="cbo_SequenceNames" SelectionChanged="cbo_SequenceNames_SelectionChanged" FontSize="21.333" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+    </Grid>
+</dx:DXWindow>

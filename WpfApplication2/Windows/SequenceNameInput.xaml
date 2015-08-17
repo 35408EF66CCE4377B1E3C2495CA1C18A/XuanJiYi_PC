@@ -1,0 +1,19 @@
+﻿<Window
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Class="Tai_Shi_Xuan_Ji_Yi.SequenceNameInput"
+	xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" 
+	x:Name="Window"
+	Title="请输入预设温度曲线名称"
+	Width="345" Height="145" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+	FocusManager.FocusedElement="{Binding ElementName=txt_Name}"
+	dx:ThemeManager.ThemeName="MetropolisLight"
+	>
+
+	<Grid x:Name="LayoutRoot">
+		<TextBox x:Name="txt_Name" HorizontalAlignment="Left" Height="23" Margin="61,17.053,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="248" MaxLines="1" MaxLength="10"/>
+		<TextBlock HorizontalAlignment="Left" Margin="14.333,21.146,0,0" TextWrapping="Wrap" Text="新名称" VerticalAlignment="Top"/>
+		<Button x:Name="btn_Confirm" Content="确定" HorizontalAlignment="Left" Margin="154,59,0,0" VerticalAlignment="Top" Width="75" Height="35" Click="btn_Confirm_Click"/>
+		<Button x:Name="btn_Cancel" Content="取消" HorizontalAlignment="Left" Margin="234,59,0,0" VerticalAlignment="Top" Width="75" Height="35" Click="btn_Cancel_Click"/>
+	</Grid>
+</Window>
