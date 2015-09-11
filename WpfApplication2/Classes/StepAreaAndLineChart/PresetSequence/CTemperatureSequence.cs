@@ -1,21 +1,90 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Windows;
 
 namespace Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence
 {
     [Serializable]
     public class CTemperatureSequence : ObservableCollection<CTemperatureSequenceKeyPoint>, ICloneable, INotifyPropertyChanged
     {
-
         string seq_name = string.Empty;
+        int intTotalTime;
+
+        [field: NonSerializedAttribute()]
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // This method is called by the Set accessor of each property.
+        // The CallerMemberName attribute that is applied to the optional propertyName
+        // parameter causes the property name of the caller to be substituted as an argument.
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        //public CTemperatureSequence():base()
+        //{
+        //    ValidateTime = true;
+        //}
+
+        //protected override void InsertItem(int index, CTemperatureSequenceKeyPoint item)
+        //{
+        //    if (ValidateTime)
+        //    {
+        //        /* 如果是新添一个温度点，判断时间总和是否超过一个小时 */
+        //        if (this.Count > 1)
+        //        {
+        //            CTemperatureSequenceKeyPoint p_last = this[this.Count - 1];
+        //            int time_cost = (int)(p_last.StartTime.AddMinutes(p_last.HoldTime).TimeOfDay.TotalMinutes);
+
+        //            if (time_cost >= 60)
+        //            {
+        //                return;
+        //            }
+        //            else
+        //            {
+        //                if (time_cost + item.HoldTime > 60)
+        //                {
+        //                    item.HoldTime = 60 - time_cost;
+        //                }
+
+        //                base.InsertItem(index, item);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (item.HoldTime > 60)
+        //                item.HoldTime = 60;
+
+        //            base.InsertItem(index, item);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        base.InsertItem(index, item);
+        //    }
+        //}
 
         protected override void OnCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            
+           
             base.OnCollectionChanged(e);
             UpdateStartTime();
         }
+
+        /// <summary>
+        /// 是否检查时间，用于StepAreaAndLineChart控件的数据源
+        /// 绑定到StepAreaAndLineChart时不需要检查时间
+        /// </summary>
+        //public bool ValidateTime
+        //{
+        //    set;
+        //    private get;
+        //}
 
         /// <summary>
         /// 设置或返回预设温度曲线的名称
@@ -34,14 +103,34 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence
         }
 
         /// <summary>
+        /// Get the total curing time (minutes)
+        /// </summary>
+        public int TotalTime
+        {
+            private set
+            {
+                intTotalTime = value;
+                NotifyPropertyChanged("TotalTime");
+            }
+            get
+            {
+                return intTotalTime;
+            }
+
+        }
+
+        /// <summary>
         /// 重新计算起始时间
         /// </summary>
         public void UpdateStartTime()
         {
+            int total_time = 0;
             DateTime time = Convert.ToDateTime("2000-01-01 00:00:00");
             for(int i = 0; i < this.Count; i++)
             {
-                if(i == 0)
+                total_time += (int)this[i].HoldTime;
+
+                if (i == 0)
                 {
                     this[0].StartTime = time;
                 }
@@ -52,7 +141,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence
                     * 因为采用阶梯线，所以最后一个温度序列需要多画一段持续的横线，最后一个项就是为了绘制多出来的一条横线
                     */
                     if (this[i].HoldTime == 0)
-
+                    {
                         // TODO: Needs to be optimized
                         /*
                         * 为什么此处-1呢？
@@ -60,11 +149,18 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence
                         * 例如需要工作60分钟，实时温度曲线采集是0~59分钟，而预设温度曲线是0~60分钟显示，所以预设会多出一分钟
                         * 其实正确的方法是实时温度采集1~60分钟，预设温度曲线显示1~60分钟，均从1分钟开始，但改动比较复杂，所以先这样
                         */
-                        this[i].StartTime = this[i - 1].StartTime.AddMinutes(this[i - 1].HoldTime - 1);
+                        this[i].StartTime = this[i - 1].StartTime.AddMinutes(this[i - 1].HoldTime);
+                        this[i].StartTime = this[i].StartTime.AddSeconds(-total_time / 2);
+                    }
                     else
-                        this[i].StartTime = this[i - 1].StartTime.AddMinutes(this[i - 1].HoldTime); 
+                    {
+                        this[i].StartTime = this[i - 1].StartTime.AddMinutes(this[i - 1].HoldTime);
+                    }
                 }
             }
+
+            this.TotalTime = total_time;
+
         }
 
         /// <summary>

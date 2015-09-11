@@ -17,7 +17,7 @@
     x:Class="Tai_Shi_Xuan_Ji_Yi.MainWindow"
     Title="台式玄机仪" Height="772" Width="1024" 
 	WindowStartupLocation="CenterScreen"
-	FocusManager.FocusedElement="{Binding ElementName=txt_UnlockPassword}" WindowState="Maximized" Icon="Images/fuxi_logo_256_256_white.png"
+	FocusManager.FocusedElement="{Binding ElementName=txt_UnlockPassword}" WindowState="Maximized"
 	>
     <Window.Resources>
         <SolidColorBrush x:Key="ButtonPressedColor" Color="#FF253749"/>

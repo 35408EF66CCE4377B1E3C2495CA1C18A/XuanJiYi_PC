@@ -21,6 +21,11 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
 
         SerialPort port; // 串口类
         string strLastError; // 最后一个错误信息
+
+        /// <summary>
+        /// 通讯错误的次数
+        /// </summary>
+        int intCommErrCnt;
         
         #endregion
 
@@ -74,6 +79,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 return false;
             }
 #else
+            port.PortName = CPublicVariables.Configuration.ControllerPort;
+            port.ReadTimeout = 3000;
             return true;
 #endif
         }
@@ -113,13 +120,18 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             for (int i = 0; i < 8; i++)
             {
                 // 随机产生治疗状态
-                double tmp = r.NextDouble();
-                if(tmp < 0.25)
-                    boardquery.Append("0");
-                else if(tmp < 0.5)
-                    boardquery.Append("1");
-                else
-                    boardquery.Append("e");
+
+                //double tmp = r.NextDouble();
+                //if (tmp < 0.25)
+                //    boardquery.Append("0");     // Standby
+                //else if (tmp < 0.5)
+                //    boardquery.Append("1");     // Curing
+                //else if (tmp < 0.75)
+                //    boardquery.Append("2");     // Heating
+                //else
+                //    boardquery.Append("e");     // Disconnected
+
+                boardquery.Append("1");
                 boardquery.Append(",");
 
                 // 随机产生治疗带使用时间
@@ -145,10 +157,20 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 ret = ret.Replace("\r", "").Replace("\n", "").Trim();
                 BoardInfo.AnalyzeQuaryString(ret);
                 blnRet = true;
+                intCommErrCnt = 0;
             }
             catch (Exception ex)
             {
-                strLastError = ex.Message;
+                intCommErrCnt++;
+                if (intCommErrCnt >= 10)
+                {
+                    strLastError = ex.Message;
+                    blnRet = false;
+                }
+                else
+                {
+                    blnRet = true;
+                }
             }
             return blnRet;
 #endif

@@ -59,11 +59,18 @@ namespace Tai_Shi_Xuan_Ji_Yi.Controls
                 {
                     /* 这里在最后加入一个Point用来修正Step Chart的View */
                     CTemperatureSequenceKeyPoint point = seq[seq.Count - 1];
-                    seq.Add(new CTemperatureSequenceKeyPoint() {HoldTime = 0, TargetTemperature = point.TargetTemperature });
+                    seq.Add(new CTemperatureSequenceKeyPoint()
+                    {
+                        HoldTime = 0,
+                        TargetTemperature = point.TargetTemperature
+                    });
                 }
             }
             owner._SeriesSequence.DataSource = seq;
 
+            /* 更新实时温度曲线的描点间隔 */
+            if (seq != null && seq.Count > 0 && owner.RealtimeTemperatureCollection != null)
+                owner.RealtimeTemperatureCollection.TotalTime = owner.PresettedSequence.TotalTime;
         }
 
 
@@ -78,8 +85,14 @@ namespace Tai_Shi_Xuan_Ji_Yi.Controls
 
         // Using a DependencyProperty as the backing store for RealtimeTemperatureCollection.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty RealtimeTemperatureCollectionProperty =
-            DependencyProperty.Register("RealtimeTemperatureCollection", typeof(CRealtimeTemperatureCollection), typeof(StepAreaAndLineChart), new PropertyMetadata());
+            DependencyProperty.Register("RealtimeTemperatureCollection", typeof(CRealtimeTemperatureCollection), typeof(StepAreaAndLineChart), new PropertyMetadata(OnRealtimeTemperatureCollectionChange));
 
+        private static void OnRealtimeTemperatureCollectionChange(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            StepAreaAndLineChart owner = d as StepAreaAndLineChart;
+            if(owner.PresettedSequence != null && owner.PresettedSequence.Count > 0 && e.NewValue != null)
+                ((CRealtimeTemperatureCollection)e.NewValue).TotalTime = owner.PresettedSequence.TotalTime;
+        }
 
         /// <summary>
         /// 设置或返回实时温度曲线的可见性

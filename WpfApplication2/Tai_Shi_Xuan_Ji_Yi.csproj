@@ -40,7 +40,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;/TerminalDataContextTest,</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -162,6 +162,7 @@
     <Compile Include="Classes\PasswordHelper.cs" />
     <Compile Include="Classes\CPublicMethods.cs" />
     <Compile Include="Classes\SettingViewModel.cs" />
+    <Compile Include="Classes\StepAreaAndLineChart\PresetSequence\CallerMemberNameAttribute.cs" />
     <Compile Include="Classes\StepAreaAndLineChart\Realtime\CRealtimeTemperatureCollection.cs" />
     <Compile Include="Classes\StepAreaAndLineChart\Realtime\CRealtimeTemperaturePoint.cs" />
     <Compile Include="Controls\ChannelSummary\ChannelSummary.xaml.cs">
@@ -183,12 +184,14 @@
       <DependentUpon>StepAreaAndLineChart.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\StepAreaAndLineChart\PresetSequence\CTemperatureSequence.cs" />
-    <Compile Include="Controls\StepAeraAndLineChart\ViewModel_TemperatureSequenceEditor.cs" />
+    <Compile Include="ViewModel\ViewModel_TemperatureSequenceEditor.cs" />
     <Compile Include="Converters\CConverterActionStateToIcon.cs" />
     <Compile Include="Converters\CConverterBancStateToColor.cs" />
     <Compile Include="Converters\CConverterBandActionToButtonState.cs" />
     <Compile Include="Converters\CConverterCureBandChannelToDisplayString.cs" />
     <Compile Include="Converters\CConverterCurebandStateToString.cs" />
+    <Compile Include="Converters\CConverterMinutesToHours.cs" />
+    <Compile Include="Converters\CConverterPresetTotalTime.cs" />
     <Compile Include="Converters\CConverterSecondToDateTime.cs" />
     <Compile Include="Converters\CConverterDoubleToPercent.cs" />
     <Compile Include="Converters\CConverterDoubleToTemperature.cs" />
@@ -363,7 +366,7 @@
     <Resource Include="Images\Cute-taylor-swift-Low.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Documents\" />
+    <Resource Include="Images\icon_windows.png" />
   </ItemGroup>
   <ItemGroup>
     <PublishFile Include="DevExpress.Charts.v15.1.Core">
@@ -543,6 +546,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\redwarning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Documents\UpdateLog.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

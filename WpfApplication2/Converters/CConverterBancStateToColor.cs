@@ -27,6 +27,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.Converters
                     else
                         backcolor = new SolidColorBrush(Colors.White);
                     break;
+
+                case CCureBandClass.ENUM_STATE.Heating:
+                    backcolor = new SolidColorBrush(Colors.Orange);
+                    break;
             }
 
             return backcolor;

@@ -13,7 +13,34 @@
     Title="新建治疗" Height="480" Width="600" 
     WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow" ResizeMode="NoResize"
     >
-    <Grid DataContext="{Binding Source={StaticResource Locator}}">
+    <dx:DXWindow.Resources>
+        <DataTemplate x:Key="DataTemplatePatientList">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="治疗编号" FontWeight="Bold" FontSize="13.333"/>
+                <TextBlock Text="姓名" Grid.Row="1"/>
+                <TextBlock Text="治疗通道" Grid.Row="2"/>
+                <TextBlock Text="温度曲线" Grid.Row="3"/>
+                <TextBlock Text="治疗时间" Grid.Row="4"/>
+                <TextBlock Text="{Binding CureSN}" Grid.Column="1" FontWeight="Bold" FontSize="13.333"/>
+                <TextBlock Text="{Binding PatientName}" Grid.Row="1" Grid.Column="1"/>
+                <TextBlock Text="{Binding CureChannel}" Grid.Row="2" Grid.Column="1"/>
+                <TextBlock Text="{Binding SequenceSnapshot.SequenceName}" Grid.Row="3" Grid.Column="1"/>
+                <TextBlock Text="{Binding UpdatedTime}" Grid.Row="4" Grid.Column="1"/>
+            </Grid>
+        </DataTemplate>
+    </dx:DXWindow.Resources>
+    <Grid x:Name="grid_Root" DataContext="{Binding Source={StaticResource Locator}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
@@ -31,8 +58,8 @@
         <TextBlock Text="患者姓名" Grid.Row="2" VerticalAlignment="Center" Margin="10,0,0,0"/>
         <TextBlock Text="预设温度曲线" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"/>
         <TextBlock Text="治疗编号" Grid.Row="1" VerticalAlignment="Center" Margin="10,0,0,0"/>
-        <TextBox Grid.Column="1" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,20,0" Text="{Binding NewCureSetup.PatientName, Mode=OneWayToSource}" FontSize="16" MaxLength="5"/>
-        <ComboBox x:Name="comboBox"  Grid.Column="3" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,10,0" ItemsSource="{Binding NewCureSetup.SequenceNames}" SelectedItem="{Binding NewCureSetup.SelectedSequenceName, Mode=OneWayToSource}" FontSize="16">
+        <TextBox x:Name="txt_Name" Grid.Column="1" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,20,0" Text="{Binding NewCureSetup.PatientName, Mode=TwoWay}" FontSize="16" MaxLength="5"/>
+        <ComboBox x:Name="comboBox"  Grid.Column="3" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,10,0" ItemsSource="{Binding NewCureSetup.SequenceNames}" Text="{Binding NewCureSetup.SelectedSeqName, Mode=OneWay}" FontSize="16">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectionChanged">
                     <cmd:EventToCommand
@@ -42,9 +69,25 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </ComboBox>
-        <Controls:StepAreaAndLineChart Grid.Row="3" d:LayoutOverrides="Width, Height" Grid.ColumnSpan="4" PresettedSequence="{Binding NewCureSetup.Sequence}"/>
-        <Button x:Name="button" Content="确定" Grid.Row="4" Grid.ColumnSpan="4" Command="{Binding NewCureSetup.ApplySetting}"/>
-        <dxe:BarCodeEdit Grid.Column="1" Grid.Row="1" EditValue="{Binding NewCureSetup.CureSN, Mode=OneWay}" Grid.ColumnSpan="3" HorizontalAlignment="Left" Module="4" >
+        <Controls:StepAreaAndLineChart Grid.Row="3" d:LayoutOverrides="Width, Height" Grid.ColumnSpan="4" PresettedSequence="{Binding NewCureSetup.Sequence}" RealtimeTemperatureVisible="False"/>
+        <Grid x:Name="grid_LoadHistory" Grid.ColumnSpan="4" Grid.RowSpan="4" Panel.ZIndex="999" Margin="0,0,0,2" Visibility="Hidden">
+            <ListBox x:Name="listBox" ItemTemplate="{DynamicResource DataTemplatePatientList}" ItemsSource="{Binding CureHistory.HistoryCollection}" SnapsToDevicePixels="True" MouseDoubleClick="listBox_MouseDoubleClick">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </Grid>
+        <Grid Grid.Row="5" Grid.ColumnSpan="4" Margin="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Button  x:Name="btn_LoadFromHistory" Content="从历史记录加载" Margin="0,0,2,0" Click="btn_LoadFromHistory_Click"/>
+            <Button x:Name="button" Content="确定" Command="{Binding NewCureSetup.ApplySetting}" Grid.Column="1"/>
+        </Grid>
+        <dxe:BarCodeEdit Grid.Column="1" Grid.Row="1" EditValue="{Binding NewCureSetup.CureSN, Mode=OneWay}" Grid.ColumnSpan="3" HorizontalAlignment="Left" Module="4" Panel.ZIndex="1" >
             <dxe:BarCodeEdit.StyleSettings>
                 <dxe:Code39ExtendedStyleSettings/>
             </dxe:BarCodeEdit.StyleSettings>

@@ -1,10 +1,13 @@
 ﻿using DevExpress.Xpf.Core;
+using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Tai_Shi_Xuan_Ji_Yi.Classes;
 using Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence;
 using Tai_Shi_Xuan_Ji_Yi.Controls;
+using Tai_Shi_Xuan_Ji_Yi.Converters;
 
 namespace Tai_Shi_Xuan_Ji_Yi.Windows
 {
@@ -85,7 +88,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
         /// <summary>
         /// 返回选定的Sequence
         /// </summary>
-        public CTemperatureSequence SelectedSequenc
+        public CTemperatureSequence SelectedSequece
         {
             get
             {
@@ -151,6 +154,17 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                         _vm.SequenceName = "";
                         grid_SequenceEdit.ItemsSource = _vm.Sequence;
                         chart1.PresettedSequence = _vm.Sequence;
+
+                        Binding b = new Binding("TotalTime");
+                        b.Source = _vm.Sequence;
+                        b.Converter = new CConverterPresetTotalTimeToComment();
+                        txt_TotalCureTime.SetBinding(TextBlock.TextProperty, b);
+
+                        b = new Binding("TotalTime");
+                        b.Source = _vm.Sequence;
+                        b.Converter = new CConverterPresetTotalTimeToColor();
+                        txt_TotalCureTime.SetBinding(TextBlock.ForegroundProperty, b);
+
                     }
                     break;
             }
@@ -179,7 +193,6 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             chart1.PresettedSequence = null;
             chart1.PresettedSequence = _vm.Sequence;
         }
-        
 
         private void cbo_SequenceNames_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -189,6 +202,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                 _vm.LoadSequence(cbo.SelectedItem.ToString());
                 grid_SequenceEdit.ItemsSource = _vm.Sequence;
                 chart1.PresettedSequence = _vm.Sequence;
+
+                Binding b = new Binding("TotalTime");
+                b.Source = _vm.Sequence;
+                b.Converter = new CConverterPresetTotalTimeToComment();
+                txt_TotalCureTime.SetBinding(TextBlock.TextProperty, b);
+
+                b = new Binding("TotalTime");
+                b.Source = _vm.Sequence;
+                b.Converter = new CConverterPresetTotalTimeToColor();
+                txt_TotalCureTime.SetBinding(TextBlock.ForegroundProperty, b);
             }
         }
 
@@ -204,6 +227,13 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             if(_vm.Sequence.Count == 0)
             {
                 MessageBox.Show("当前温度序列为空", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            /* 检查总时间是否超过60分钟 */
+            if(_vm.Sequence.TotalTime > CPublicVariables.Configuration.MaxCureTimeAllowed)
+            {
+                MessageBox.Show("总治疗时间不能超过60分钟", "警告", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -223,7 +253,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                     }
                     else
                     {
-                        if(seq.Count > 0)   // 如果当前Sequence name已存在，询问用户是否覆盖
+                        if(seq != null && seq.Count > 0)   // 如果当前Sequence name已存在，询问用户是否覆盖
                         {
                             // 如果不覆盖，则退出保存过程
                             if(MessageBox.Show(string.Format("{0}已存在，是否覆盖？", f.SequenceName), "警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
@@ -276,6 +306,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                     _vm.SequenceName = "";
                     grid_SequenceEdit.ItemsSource = _vm.Sequence;
                     chart1.PresettedSequence = _vm.Sequence;
+
+                    Binding b = new Binding("TotalTime");
+                    b.Source = _vm.Sequence;
+                    b.Converter = new CConverterPresetTotalTimeToComment();
+                    txt_TotalCureTime.SetBinding(TextBlock.TextProperty, b);
+
+                    b = new Binding("TotalTime");
+                    b.Source = _vm.Sequence;
+                    b.Converter = new CConverterPresetTotalTimeToColor();
+                    txt_TotalCureTime.SetBinding(TextBlock.ForegroundProperty, b);
                 }
             }
         }
@@ -326,7 +366,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                 this.DialogResult = true;   
             }
         }
-        
+
         #endregion
+
     }
 }

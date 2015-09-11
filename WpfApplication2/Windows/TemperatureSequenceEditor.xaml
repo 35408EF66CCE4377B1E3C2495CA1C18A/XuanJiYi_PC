@@ -100,10 +100,11 @@
             <RowDefinition Height="85"/>
             <RowDefinition/>
             <RowDefinition Height="10"/>
+            <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-        <TextBlock x:Name="txt_Tip_Edit" Text="请在下面列表中输入保持时长和目标温度，以生成温控序列。&#xA; ● 拖动列表中的项目可以调整顺序。&#xA; ● 保持时间范围：10分钟~120分钟&#xA; ● 温度范围：25℃~70℃" TextWrapping="Wrap" Visibility="{Binding Visibility, ElementName=btn_New}" Grid.Row="1" Grid.ColumnSpan="4"/>
+        <TextBlock x:Name="txt_Tip_Edit" Text="请在下面列表中输入保持时长和目标温度，以生成温控序列。&#xA; ● 拖动列表中的项目可以调整顺序。&#xA; ● 保持时间范围：1分钟~60分钟&#xA; ● 温度范围：30℃~60℃" TextWrapping="Wrap" Visibility="{Binding Visibility, ElementName=btn_New}" Grid.Row="1" Grid.ColumnSpan="4"/>
         <TextBlock x:Name="txt_Tip_Load" Grid.Column="4" Text="请在左侧的下拉框里选择要加载的温度序列，&#xA; 然后点击加载按钮。" TextWrapping="Wrap" Margin="0,0,0,16.48" Visibility="{Binding Visibility, ElementName=btn_Load}" Height="0" VerticalAlignment="Bottom"/>
-        <local:StepAreaAndLineChart x:Name="chart1" RealtimeTemperatureVisible="False" Grid.RowSpan="4" Grid.Column="4"/>
+        <local:StepAreaAndLineChart x:Name="chart1" RealtimeTemperatureVisible="False" Grid.RowSpan="5" Grid.Column="4"/>
         <dxg:GridControl x:Name="grid_SequenceEdit"  AutoPopulateColumns="True" SelectionMode="Row"  Grid.Row="2" Margin="0" Grid.RowSpan="2" Grid.ColumnSpan="4" >
             <dxg:GridControl.Columns>
                 <dxg:GridColumn FieldName="StartTime" Header="开始时间" VisibleIndex="0" AllowEditing="False" AllowAutoFilter="False" ReadOnly="True" AllowColumnFiltering="False">
@@ -111,14 +112,14 @@
                         <dxe:DateEditSettings DisplayFormat="HH:mm:ss"/>
                     </dxg:GridColumn.EditSettings>
                 </dxg:GridColumn>
-                <dxg:GridColumn x:Name="colHoldTime" FieldName="HoldTime" Header="保持（分钟）" VisibleIndex="1"  >
+                <dxg:GridColumn x:Name="colHoldTime" FieldName="HoldTime" Header="保持（分钟）" VisibleIndex="1" >
                     <dxg:GridColumn.EditSettings>
-                        <dxe:SpinEditSettings MinValue="10" MaxValue="120" Mask="F0"/>
+                        <dxe:SpinEditSettings MinValue="1" MaxValue="60" Mask="F0"/>
                     </dxg:GridColumn.EditSettings>
                 </dxg:GridColumn>
                 <dxg:GridColumn x:Name="colTargetTemperature" FieldName="TargetTemperature" Header="温度（℃）" VisibleIndex="2" >
                     <dxg:GridColumn.EditSettings>
-                        <dxe:SpinEditSettings MinValue="25" MaxValue="70" Mask="F1"/>
+                        <dxe:SpinEditSettings MinValue="30" MaxValue="60" Mask="F1"/>
                     </dxg:GridColumn.EditSettings>
                 </dxg:GridColumn>
             </dxg:GridControl.Columns>
@@ -133,6 +134,7 @@
                 </dxg:TableView>
             </dxg:GridControl.View>
         </dxg:GridControl>
+        <TextBlock x:Name="txt_TotalCureTime"  Grid.Row="4" Grid.ColumnSpan="4"  Text="Total Time" VerticalAlignment="Bottom"/>
         <Button x:Name="btn_Load" Content="加载" VerticalAlignment="Bottom" Margin="15,0,32,16" Height="0" Visibility="Hidden" Click="btn_Load_Click" Grid.Column="2"/>
         <Button x:Name="btn_New" Content="新建" Click="btn_New_Click" Grid.Column="1" Margin="2,10"/>
         <Button x:Name="btn_Save" Content="保存" Click="btn_Save_Click" Grid.Column="2" Margin="2,10"/>

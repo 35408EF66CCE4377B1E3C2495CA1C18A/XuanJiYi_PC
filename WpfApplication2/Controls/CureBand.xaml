@@ -16,6 +16,7 @@
     d:DesignHeight="667">
 
     <UserControl.Resources>
+        <Converters:CConverterMinutesToHours x:Key="CConverterMinutesToHours"/>
         <Converters:CConverterCurebandStateToString x:Key="CConverterCurebandStateToString"/>
         <Converters:CConverterDoubleToPercent x:Key="CConverterDoubleToPercent"/>
         <Converters:CConverterSecondToDateTime x:Key="CConverterSecondToDateTime"/>
@@ -69,7 +70,7 @@
         <local:DataPanel Grid.Column="2" Margin="0,0,1,0" Title="实时温度" Grid.Row="3" Value="{Binding RealtimeTemperature, Converter={StaticResource CConverterDoubleToTemperature}, Mode=OneWay}"/>
         <local:DataPanel Grid.Column="3" Margin="0,0,1,0" Title="治疗耗时" Grid.Row="3" Value="{Binding CureElapsedEffective, Converter={StaticResource CConverterSecondToDateTime}, Mode=OneWay}"/>
         <local:DataPanel Grid.Column="4" Margin="0,0,1,0" Title="本段剩余时间" Grid.Row="3" Value="{Binding TimeRemainedInStage, Converter={StaticResource CConverterSecondToDateTime}, Mode=OneWay}"/>
-        <local:DataPanel Grid.Column="5" Title="治疗带累计时间" Grid.Row="3" Value="{Binding CureBandServiceTime, Mode=OneWay}"/>
+        <local:DataPanel Grid.Column="5" Title="治疗带累计时间" Grid.Row="3" Value="{Binding CureBandServiceTime, Converter={StaticResource CConverterMinutesToHours}, Mode=OneWay}"/>
 
     </Grid>
 </UserControl>

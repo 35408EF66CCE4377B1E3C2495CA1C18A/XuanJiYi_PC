@@ -35,15 +35,15 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.PresetSequence
             switch (propertyName)
             {
                 case "TargetTemperature":
-                    if (TargetTemperature < 25 || TargetTemperature > 70)
+                    if (TargetTemperature < 30 || TargetTemperature > 60)
                         SetErrorInfo(info,
-                            "目标温度必须在25℃至70℃之间",
+                            "目标温度必须在30℃至60℃之间",
                             ErrorType.Critical);
                     break;
                 case "HoldTime":
-                    if (HoldTime < 10 || HoldTime > 120)
+                    if (HoldTime < 1 || HoldTime > 60)
                         SetErrorInfo(info,
-                            "保持时间必须在10分钟至120分钟之间",
+                            "保持时间必须在1分钟至60分钟之间",
                             ErrorType.Critical);
                     break;
             }

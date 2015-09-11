@@ -16,6 +16,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
     public class CCureBandClass : ViewModelBase
     {
         #region Const Variables
+
+        /// <summary>
+        /// 倒计时时基（ms）
+        /// </summary>
+#if DEBUG
+        const int COUNTDOWN_BASETIME_MS = 50;
+#else
+         const int COUNTDOWN_BASETIME_MS  = 1000;
+#endif
+
         /// <summary>
         /// 用户取消治疗
         /// </summary>
@@ -66,7 +76,12 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             /// <summary>
             /// 正在治疗
             /// </summary>
-            Curing
+            Curing,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            Heating
         }
 
         /// <summary>
@@ -186,8 +201,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <summary>
         /// 后台治疗线程
         /// </summary>
-        BackgroundWorker bgw_cure; 
-        
+        BackgroundWorker bgw_cure;
+
         /// <summary>
         /// 实时温度曲线
         /// </summary>
@@ -196,7 +211,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <summary>
         /// 用来产生倒计时时基的对象
         /// </summary>
-        System.Threading.Timer timer_countdown_tick;
+        Timer timer_countdown_tick;
 
         /// <summary>
         /// 倒计时同步信号量
@@ -238,16 +253,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             bgw_cure.ProgressChanged += bgw_cure_ProgressChanged;
             bgw_cure.RunWorkerCompleted += Bgw_cure_RunWorkerCompleted;
             //bgw_cure.RunWorkerAsync();
-            
+
             realtime_temperature_collection = new CRealtimeTemperatureCollection();
             presetted_sequence = new CTemperatureSequence();
 
             /* 初始化倒计时时基的定时器 */
-            timer_countdown_tick = new Timer(OnTimerIntervalEvent, null, Timeout.Infinite, 1000);
+            timer_countdown_tick = new Timer(OnTimerIntervalEvent, null, Timeout.Infinite, COUNTDOWN_BASETIME_MS);
             sem_countdown_tick = new Semaphore(0, 1);
 
             /* 初始化Command */
-            command_start_resume = new RelayCommand<object>(p=>StartOrResumeExecute(p));
+            command_start_resume = new RelayCommand<object>(p => StartOrResumeExecute(p));
 
             this.patient_name = "";
         }
@@ -262,22 +277,22 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 MessageBox.Show("未选择预设温度序列，请点击·新建治疗·按钮进行加载", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
-            else 
+            else
             {
                 if (control_central.BoardInfo.State.Length > 0)
                 {
-                    if(control_central.BoardInfo.State[Channel] == ENUM_STATE.Disconnected)
+                    if (control_central.BoardInfo.State[Channel] == ENUM_STATE.Disconnected)
                     {
                         MessageBox.Show("当前通道未插入治疗带", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
                     }
                     // 治疗带使用时间达到最大值
-                    else if (control_central.BoardInfo.State[Channel] == ENUM_STATE.Overdue)
+                    else if (this.CureBandState == ENUM_STATE.Overdue)
                     {
                         MessageBox.Show("治疗带使用时间达到最大值，请更换治疗带", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
                     }
-                    else if(this.CureAction == ENUM_ACTION.Finished)    // 上次测试完毕，需要重新生成一个CureSN才能开始治疗
+                    else if (this.CureAction == ENUM_ACTION.Finished)    // 上次测试完毕，需要重新生成一个CureSN才能开始治疗
                     {
                         MessageBox.Show("该治疗编号已使用，请新建治疗后重新开始", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return false;
@@ -288,7 +303,11 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                         // 启动定时线程，开始治疗
                         if (!bgw_cure.IsBusy)    // bgw_cure线程是否已经运行，如果运行，说明是Resume操作
                             bgw_cure.RunWorkerAsync();
-                        timer_countdown_tick.Change(100, 1000);
+                        else // 从暂停状态恢复
+                        {
+                            /* 启动1s时基定时器 */
+                            timer_countdown_tick.Change(100, COUNTDOWN_BASETIME_MS);
+                        }
 
                         return true;
                     }
@@ -308,7 +327,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// </summary>
         void Pause()
         {
-            timer_countdown_tick.Change(Timeout.Infinite, 1000);
+            timer_countdown_tick.Change(Timeout.Infinite, COUNTDOWN_BASETIME_MS);
         }
 
         /// <summary>
@@ -637,7 +656,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             }
         }
         #endregion
- 
+
         #region Events
         /// <summary>
         /// 产生倒计时时基，供治疗线程倒计时
@@ -654,7 +673,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
 
             }
         }
-        
+
         /// <summary>
         /// 开始治疗
         /// </summary>
@@ -662,53 +681,91 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <param name="e"></param>
         void bgw_cure_DoWork(object sender, DoWorkEventArgs e)
         {
+            /*=========================================== 判断治疗带是否过期 ===============================================*/
+            /* 
+            * 如果治疗带过期，并且治疗还未启动，则退出 
+            * 如果正在治疗中，则继续治疗，但是避免下一次启动治疗
+            */
+            if (this.CureBandState == ENUM_STATE.Overdue && this.CureElapsedEffective == 0)
+            {
+                bgw_cure.ReportProgress(CURE_PROG_REPORT_CUREBAND_EXPIRED);
+                return;
+            }
+            /*=========================================================================================================*/
+
             CDatabase db = new CDatabase();
 
             /* 
             * 启动控制板 
             */
             control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Start, this.Channel, 0));
+            Thread.Sleep(2000);
             /*
             * 这里必须将cure_stage赋值为-1，第一次进入this.PresettedSequence.WhichStageBelongTo()函数时会产生一次StageChanged，
             * 这样可以触发一次SetTemperature事件；否则，第一个stage的温度没有机会设置到主控板
             */
-            cure_stage = -1;   
+            cure_stage = -1;
 
             /* 获取治疗总时间 */
             this.CureTimeNeeded = (int)this.PresettedSequence.Sum(t => t.HoldTime) * 60;
             this.StartCure = DateTime.Now;
 
-            while(true)
+            /* 启动1s时基定时器 */
+            timer_countdown_tick.Change(100, COUNTDOWN_BASETIME_MS);
+
+            while (true)
             {
                 /* 等待倒计时时基中断 */
                 sem_countdown_tick.WaitOne();
 
-                /* 获取治疗带数据 */
-                if (control_central.BoardInfo.State.Length > 0)
-                {
-                    /* 获取实时温度 */
-                    this.RealtimeTemperature = control_central.BoardInfo.Temperature[this.Channel];
-
-                    /* 获取状态 */
-                    //this.CureBandState = control_central.BoardInfo.State[this.Channel];
-
-                    /* 获取治疗带使用时间 */
-                    //this.CureBandServiceTime = control_central.BoardInfo.CureBandServiceTime[this.Channel];   
-                }
-
-                /* 
-                * 如果治疗带过期，并且治疗还未启动，则退出 
-                * 如果正在治疗中，则继续治疗，但是避免下一次启动治疗
+                #region Obsolete segment
+                /*
+                +++++++++++++++++++++++++++++++++++
+                +  获取数据的部分被移至通讯成功事件
+                +++++++++++++++++++++++++++++++++++
                 */
-                if(this.CureBandState == ENUM_STATE.Overdue && this.CureElapsedEffective == 0)
+                /* 获取治疗带数据 */
+                //if (control_central.BoardInfo.State.Length > 0)
+                //{
+                /* 获取实时温度 */
+                //this.RealtimeTemperature = control_central.BoardInfo.Temperature[this.Channel];
+
+                /* 获取状态 */
+                //this.CureBandState = control_central.BoardInfo.State[this.Channel];
+
+                /* 获取治疗带使用时间 */
+                //this.CureBandServiceTime = control_central.BoardInfo.CureBandServiceTime[this.Channel];   
+                //}
+                #endregion
+
+                #region Check user's interrupt
+                /*============== 检查用户是否请求停止治疗过程 ==============*/
+                if (bgw_cure.CancellationPending)
                 {
-                    bgw_cure.ReportProgress(CURE_PROG_REPORT_CUREBAND_EXPIRED);
+                    bgw_cure.ReportProgress(CURE_PROG_REPORT_CANCELED);
                     return;
                 }
+                /*=================================================*/
+                #endregion  
 
-                /* 添加实时温度 */
-                bgw_cure.ReportProgress(CURE_PROG_REPORT_ADD_RTT);
-   
+                /*============================================= 判断治疗带是否在加热 ============================================*/
+                /* 
+                * 检查治疗带是否已启动
+                * 因为控制板有可能因为I2C通讯问题重启，此时所有通道会重置到停止状态，这种情况下需要返回的治疗带状态是停止，
+                * 此时则需要重新启动一下
+                */
+                if (this.CureBandState == ENUM_STATE.Standby)
+                {
+
+                    control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+                    control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Start, this.Channel, 0));
+
+                    Thread.Sleep(2000); // 等待启动
+
+                    continue;
+                }
+                /*=========================================================================================================*/
+
                 #region Check user's interrupt
                 /*============== 检查用户是否请求停止治疗过程 ==============*/
                 if (bgw_cure.CancellationPending)
@@ -719,39 +776,40 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 /*=================================================*/
                 #endregion
 
-                /* 检查当前治疗属于哪个阶段 */
-                this.PresettedSequence.WhichStageBelongTo(this.CureElapsedEffective, cure_stage, out cure_stage, out bln_stage_changed, out time_remained_in_stage, out dbl_progress_in_stage);
-                this.CureProgressInStage = dbl_progress_in_stage;
-                this.TimeRemainedInStage = time_remained_in_stage;
-
-                // 如果温度阶段发生变化，则读取预设温度，并将预设温度写入控制板
-                if (bln_stage_changed)   
+                /* 如果状态是正在加热，则等待，同时发送设置温度的命令，以确保目标温度写入控制板 */
+                if (this.CureBandState == ENUM_STATE.Heating)
                 {
-                    /* 预设温度 */
-                    this.PresetTemperatureInCurrentStage = this.PresettedSequence[cure_stage].TargetTemperature;
-
-                    /* 向控制板设置加热温度 */
-                    control_central.SetControllerWorks(
-                        new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+                    control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+                    Thread.Sleep(2000);
+                    continue;
                 }
-                
 
-                #region Check user's interrupt
-                /*============== 检查用户是否请求停止治疗过程 ==============*/
-                if (bgw_cure.CancellationPending)
-                {
-                    bgw_cure.ReportProgress(CURE_PROG_REPORT_CANCELED);
-                    return;
-                }
-                /*=================================================*/
-                #endregion
-
-
+                /*================================================ 具体的业务逻辑 =============================================*/
                 /* 检查控制板返回的治疗带状态是否正常 
                 ** 如果不在Curing状态，说明出现故障，则暂停计时，等待用户处理硬件故障 
                 */
                 if (this.CureBandState == ENUM_STATE.Curing)
                 {
+
+                    /* 检查当前治疗属于哪个阶段 */
+                    this.PresettedSequence.WhichStageBelongTo(this.CureElapsedEffective, cure_stage, out cure_stage, out bln_stage_changed, out time_remained_in_stage, out dbl_progress_in_stage);
+                    this.CureProgressInStage = dbl_progress_in_stage;
+                    this.TimeRemainedInStage = time_remained_in_stage;
+
+                    // 如果温度阶段发生变化，则读取预设温度，并将预设温度写入控制板
+                    if (bln_stage_changed)
+                    {
+                        /* 预设温度 */
+                        this.PresetTemperatureInCurrentStage = this.PresettedSequence[cure_stage].TargetTemperature;
+
+                        /* 向控制板设置加热温度 */
+                        control_central.SetControllerWorks(
+                            new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+                    }
+
+                    /* 添加实时温度 */
+                    bgw_cure.ReportProgress(CURE_PROG_REPORT_ADD_RTT);
+
                     /* 每一秒获取的温度均保存在数据库中 */
                     if (db.InsertNewCureDetail(this.CureSN, this.RealtimeTemperature, this.CureElapsedEffective) == false)
                     {
@@ -771,10 +829,9 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
 
                     /* 增加治疗时间 */
                     this.CureElapsedEffective++;
-
-                    
                 }
-                
+                /*=========================================================================================================*/
+
                 #region Check user's interrupt
                 /*============== 检查用户是否请求停止治疗过程 ==============*/
                 if (bgw_cure.CancellationPending)
@@ -794,7 +851,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <param name="e"></param>
         void bgw_cure_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            switch(e.ProgressPercentage)
+            switch (e.ProgressPercentage)
             {
                 case CURE_PROG_REPORT_CANCELED: // 用户终止治疗
                     this.CureAction = ENUM_ACTION.Stopped;
@@ -818,7 +875,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                     this.RealTimeTemperatureCollection.Add(new CRealtimeTemperaturePoint(
                             this.CureElapsedEffective,
                             this.RealtimeTemperature));
-                    RaisePropertyChanged("RealTimeTemperatureCollection");
+                    //RaisePropertyChanged("RealTimeTemperatureCollection");
                     break;
 
                 case CURE_PROG_REPORT_CUREBAND_EXPIRED:
@@ -836,16 +893,49 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Stop, this.Channel, 0));
         }
 
-
         private void Control_central_ControllerCommStatusChanged(object sender, CommProgressReportArg e)
         {
-            if(e.Progress == CommProgressReportArg.ENUM_COMM_EVENT_TYPE.Finish)
+            switch (e.Progress)
             {
-                /* 获取状态 */
-                this.CureBandState = control_central.BoardInfo.State[this.Channel];
 
-                /* 获取治疗带使用时间 */
-                this.CureBandServiceTime = control_central.BoardInfo.CureBandServiceTime[this.Channel];
+                case CommProgressReportArg.ENUM_COMM_EVENT_TYPE.Finish:
+                    /* 获取治疗带使用时间 */
+                    this.CureBandServiceTime = control_central.BoardInfo.CureBandServiceTime[this.Channel];
+
+
+                    /* 获取治疗带状态 */
+                    // 如果使用时间达到最大值，则标记为过期
+                    if (this.CureBandServiceTime >= CPublicVariables.Configuration.MaxCureBandServieTime && !bgw_cure.IsBusy)
+                        this.CureBandState = ENUM_STATE.Overdue;
+                    else
+                        this.CureBandState = control_central.BoardInfo.State[this.Channel];
+
+
+                    /* 显示实时温度 */
+                    if (this.CureBandState == ENUM_STATE.Standby || this.CureBandState == ENUM_STATE.Curing || this.CureBandState == ENUM_STATE.Heating)
+                        this.RealtimeTemperature = control_central.BoardInfo.Temperature[this.Channel];
+                    else
+                        this.realtime_temperature = 0.0;
+                    break;
+
+                case CommProgressReportArg.ENUM_COMM_EVENT_TYPE.PortOpened:
+                    /* 
+                    * 产生PortOpened事件有两种情况：
+                    * 1、程序启动
+                    * 2、通讯中断后重新恢复连接
+                    * 如果出现第二种情况，可能是控制板断电或者其它情况造成的重启，此时需要根据PC端记录的状态恢复每个通道的工作状态，
+                    * 因此这里向每个通道重新写入控制信息
+                    */
+                    if (this.CureAction == ENUM_ACTION.Started || this.CureAction == ENUM_ACTION.Paused)
+                    {
+                        control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Start, this.Channel, 0));
+                        control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+                    }
+                    else
+                    {
+                        control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Stop, this.Channel, 0));
+                    }
+                    break;
             }
         }
         #endregion
@@ -903,12 +993,12 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <param name="param"></param>
         void PauseOrStopExecute(object param)
         {
-            if(this.CureAction == ENUM_ACTION.Started)
+            if (this.CureAction == ENUM_ACTION.Started)
             {
                 this.Pause();
                 this.CureAction = ENUM_ACTION.Paused;
             }
-            else if(this.CureAction == ENUM_ACTION.Paused)
+            else if (this.CureAction == ENUM_ACTION.Paused)
             {
                 if (MessageBox.Show("终止治疗将清空现有治疗数据，是否继续终止治疗？", "警告", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
@@ -943,7 +1033,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 // Which contains Patient name, sequence binary array, Cure SN, etc.
                 using (CDatabase db = new CDatabase())
                 {
-                    if (db.CreateCureHistory(CureSN,  PatientName, Channel,PresettedSequence) == false)
+                    if (db.CreateCureHistory(CureSN, PatientName, Channel, PresettedSequence) == false)
                     {
                         MessageBox.Show("创建新的治疗记录时发生错误\r\n错误：" + db.LastError, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     }

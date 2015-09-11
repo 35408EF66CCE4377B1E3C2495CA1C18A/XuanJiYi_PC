@@ -26,6 +26,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.Converters
                 case CCureBandClass.ENUM_STATE.Standby:
                     ret = "准备好";
                     break;
+
+                case CCureBandClass.ENUM_STATE.Heating:
+                    ret = "预加热";
+                    break;
             }
 
             return ret;

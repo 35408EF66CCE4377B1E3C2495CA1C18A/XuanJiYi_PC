@@ -38,5 +38,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             private set;
             get;
         }
+
+        public override string ToString()
+        {
+            return string.Format("Command:{0}, Channel:{1}, Temperature:{2}", new string[] { Command.ToString(), Channel.ToString(), Temperature.ToString() });
+        }
     }
 }

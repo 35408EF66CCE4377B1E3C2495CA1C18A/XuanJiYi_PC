@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using Tai_Shi_Xuan_Ji_Yi.Classes;
 using Tai_Shi_Xuan_Ji_Yi.Classes.HistoryShow;
 using Tai_Shi_Xuan_Ji_Yi.Classes.StepAreaAndLineChart.Realtime;
@@ -21,6 +20,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
 
         public ViewModeCureHistory()
         {
+            _realtime_temper_collection = new CRealtimeTemperatureCollection();
+            _history_collection = new ObservableCollection<CCureHistory>();
         }
 
         public void LoadHistorySummary()
@@ -30,12 +31,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
 
         public void LoadHistorySummary(string CureSN)
         {
-            this.RealtimeTemperCollection = null;
-            _realtime_temper_collection = null;
-            RaisePropertyChanged("RealtimeTemperCollection");
-
-
-            _history_collection = new ObservableCollection<CCureHistory>();
+            _realtime_temper_collection.Clear();
+            _history_collection.Clear();
 
             new Thread(() =>
             {
@@ -50,19 +47,21 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                     }
                     else
                     {
+
                         foreach (DataRow dr in dt.Rows)
                         {
-                            _history_collection.Add(new CCureHistory(
-                                dr["cure_sn"].ToString(),
-                                dr["patient_name"].ToString(),
-                                Convert.ToInt16(dr["cure_channel"]),
-                                Convert.ToDateTime(dr["created_time"]),
-                                Convert.ToDateTime(dr["updated_time"]),
-                                (byte[])dr["seq_snapshot"]));
+                            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                _history_collection.Add(
+                                    new CCureHistory(
+                                        dr["cure_sn"].ToString(),
+                                        dr["patient_name"].ToString(),
+                                        Convert.ToInt16(dr["cure_channel"]),
+                                        Convert.ToDateTime(dr["created_time"]),
+                                        Convert.ToDateTime(dr["updated_time"]),
+                                        (byte[])dr["seq_snapshot"]));
+                            }));
                         }
-                        
-                            this.HistoryCollection = _history_collection;
-                            RaisePropertyChanged("HistoryCollection");
                     }
                 }
             }).Start();
@@ -71,8 +70,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
         #region Properties
         public ObservableCollection<CCureHistory> HistoryCollection
         {
-            private set;
-            get;
+            get
+            {
+                return _history_collection;
+            }
         }
 
         /// <summary>
@@ -80,8 +81,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
         /// </summary>
         public CRealtimeTemperatureCollection RealtimeTemperCollection
         {
-            private set;
-            get;
+            get
+            {
+                return _realtime_temper_collection;
+            }
         }
 
         /// <summary>
@@ -109,27 +112,26 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
         {
             get
             {
-                return new RelayCommand<CCureHistory>(history => 
+                return new RelayCommand<CCureHistory>(history =>
                 {
                     if (history == null)
                         return;
 
                     // 清空上次查询的结果
-                    RealtimeTemperCollection = null;
-                    _realtime_temper_collection = new CRealtimeTemperatureCollection();
-                    RaisePropertyChanged("RealtimeTemperCollection");
+                    _realtime_temper_collection.Clear();
 
                     string cure_sn = history.CureSN;
                     DataTable dt = null;
                     new Thread(() =>
                     {
+
                         using (CDatabase db = new CDatabase())
                         {
                             // 获取实时温度历史列表
                             if (!db.GetHistoryByCureSN(cure_sn, out dt))
                             {
                                 // 如果错误，通知View弹出错误对话框
-                                Messenger.Default.Send<NotificationMessage<string>>(new NotificationMessage<string>( db.LastError, "获取历史温度曲线时发生错误"), "DBError");
+                                Messenger.Default.Send<NotificationMessage<string>>(new NotificationMessage<string>(db.LastError, "获取历史温度曲线时发生错误"), "DBError");
                             }
                             else
                             {
@@ -145,25 +147,26 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                                 // 根据历史列表生成CRealtimeTemperatureCollection对象
                                 foreach (DataRow dr in dt.Rows)
                                 {
-                                    _realtime_temper_collection.Add(new CRealtimeTemperaturePoint(Convert.ToInt16(dr["second_order"]), Convert.ToDouble(dr["temperature"])));
 
                                     Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                                     {
+                                        _realtime_temper_collection.Add(new CRealtimeTemperaturePoint(Convert.ToInt16(dr["second_order"]), Convert.ToDouble(dr["temperature"])));
+
                                         LoadRTCollectionProgress++;
                                         RaisePropertyChanged("LoadRTCollectionProgress");
-                                    }));
 
+                                    }));
                                 }
 
-                                RealtimeTemperCollection = _realtime_temper_collection;
-                                RaisePropertyChanged("RealtimeTemperCollection");
-
                                 LoadRTCollectionProgress = 0;
-                                //RaisePropertyChanged("LoadRTCollectionProgress");
+                                RaisePropertyChanged("LoadRTCollectionProgress");
+
                             }
+
                         }
-                    }).Start();
                     
+                    }).Start();
+
                 });
             }
         }

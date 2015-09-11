@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Tai_Shi_Xuan_Ji_Yi.Classes
@@ -88,7 +89,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// </summary>
         public bool IsRunning
         {
-            set;
+            private set;
             get;
         }
 
@@ -184,7 +185,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                     while (true)
                     {
 
-                        Thread.Sleep(500);
+                        Thread.Sleep(300);
 
                         /* 查询控制器各项参数 */
                         if (mControlBoard.QueryStatus(ref mBoardInfo)) // 查询状态成功
@@ -193,55 +194,59 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                         }
                         else    // 查询状态失败
                         {
+                            queSendingCommands.Clear();
                             strLastError = mControlBoard.LastError;
                             bgw_RS232.ReportProgress(STAT_COMM_QUERY_ERR);
                             mControlBoard.Close();
                             Thread.Sleep(1000);
                             break;  // 如果查询状态失败，重新连接串口
                         }
-                        
-                        /* 检查是否有命令需要发送到控制器 */
-                        bool cmd_err = false;
-                        while (true)
+
+
+                        /******************** Send control commands in quene *****************/
+                        CCommandQueueItem cmd = null;
+                        lock (queSendingCommands)
                         {
                             if (queSendingCommands.Count > 0)
-                            {
-                                Thread.Sleep(1000);
-                                CCommandQueueItem cmd = queSendingCommands.Dequeue();
-                                switch (cmd.Command)
-                                {
-                                    case CCommandQueueItem.ENUM_CMD.Start:
-                                        mControlBoard.StartCuring(cmd.Channel);
-                                        break;
+                                cmd = queSendingCommands.Dequeue();
+                        }
+                        if (cmd != null)
+                        {
+                            Thread.Sleep(100);
 
-                                    case CCommandQueueItem.ENUM_CMD.Stop:
-                                        mControlBoard.StopCuring(cmd.Channel);
-                                        break;
-
-                                    case CCommandQueueItem.ENUM_CMD.SetTemper:
-                                        mControlBoard.SetTemperature(cmd.Channel, cmd.Temperature);
-                                        break;
-                                }
-                            }
-                            else
+                            switch (cmd.Command)
                             {
-                                break;
+                                case CCommandQueueItem.ENUM_CMD.Start:
+                                    mControlBoard.StartCuring(cmd.Channel);
+                                    break;
+
+                                case CCommandQueueItem.ENUM_CMD.Stop:
+                                    mControlBoard.StopCuring(cmd.Channel);
+                                    break;
+
+                                case CCommandQueueItem.ENUM_CMD.SetTemper:
+                                    mControlBoard.SetTemperature(cmd.Channel, cmd.Temperature);
+                                    break;
                             }
 
-
-                            /* 检查是否请求退出通讯过程 */
-                            if (bgw_RS232.CancellationPending)
-                            {
-                                mControlBoard.Close();
-                                return;
-                            }
-
-                            //Thread.Sleep(100);
+#if DEBUG
+                            Trace.WriteLine(string.Format("Command Send >>> {0}", cmd.ToString()));
+                            Trace.WriteLine(string.Format("Commands remained {0}", queSendingCommands.Count.ToString()));
+#endif
                         }
 
-                        
+
+                        /* 检查是否请求退出通讯过程 */
+                        if (bgw_RS232.CancellationPending)
+                        {
+                            mControlBoard.Close();
+                            return;
+                        }
+                        /******************************************************************/
+
+
                         /* 检查cdkey是否正确 */
-                        
+
                         //int cdkey_avaliable = CStaticMethods.CheckLicenseAvaliable(CPublicVariables.Configuration.MachineCode, CStaticMethods.GetActiveCode(), CPublicVariables.Configuration.CDKEY, out cdkey_expired, out cdkey_daysleft);
                         //if (cdkey_avaliable != 0)    // CDKEY验证错误
                         //{
@@ -297,7 +302,17 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         /// <param name="Work"></param>
         public void SetControllerWorks(CCommandQueueItem Command)
         {
-            queSendingCommands.Enqueue(Command);
+            lock(queSendingCommands)
+            {
+                if (queSendingCommands.Count <= 10)
+                {
+                    queSendingCommands.Enqueue(Command);
+#if DEBUG
+                    Trace.WriteLine(string.Format("Command Item Added >>> {0}", Command.ToString()));
+                    Trace.WriteLine(string.Format("Commands remained {0}", queSendingCommands.Count.ToString()));
+#endif
+                }
+            }
         }
         #endregion
 

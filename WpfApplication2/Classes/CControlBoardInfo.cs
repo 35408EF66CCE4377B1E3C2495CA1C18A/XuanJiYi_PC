@@ -43,7 +43,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             {
                 string[] info = grp[i].Split(',');
                 // 获取治疗带状态
-                if (info[0].ToLower() == "e")   // 未插入治疗带
+                if (info[0].ToLower() == "e")       // The cure band is disconnected
                 {
                     state_collection[i] = CCureBandClass.ENUM_STATE.Disconnected;
                     used_time_collection[i] = 0;
@@ -51,17 +51,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 }
                 else
                 {
-                    if(info[0] == "1")
+                    if (info[0] == "1")                 // Curing
                         state_collection[i] = CCureBandClass.ENUM_STATE.Curing;
-                    else
-                        state_collection[i] = CCureBandClass.ENUM_STATE.Standby;
+                    else if (info[0] == "2")            // The cure band is heating, the temperature has not reached the target.
+                        state_collection[i] = CCureBandClass.ENUM_STATE.Heating;
+                    else                                    // Standby, Ready to cure
+                    {
+                         state_collection[i] = CCureBandClass.ENUM_STATE.Standby;       
+                    }
 
-                    // 获取治疗带使用时间
-                    int time_used = Convert.ToInt32(info[1]);
-                    used_time_collection[i]= time_used;
-                    // 如果使用时间达到最大值，则标记为过期
-                    if (time_used >= CPublicVariables.Configuration.MaxCureBandServieTime)
-                        state_collection[i] = CCureBandClass.ENUM_STATE.Overdue;
+                    used_time_collection[i] = Convert.ToInt32(info[1]);
 
                     // 获取治疗带温度
                     double t = Convert.ToDouble(info[2]) / 100;

@@ -10,11 +10,55 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
 {
     public class ViewModelNewCureSetup : ViewModelBase
     {
-        public string PatientName { get; set; }
+        string strPatientName;
+        /// <summary>
+        /// Set or get the patient name
+        /// </summary>
+        public string PatientName
+        {
+            set
+            {
+                strPatientName = value;
+                RaisePropertyChanged("PatientName");
+            }
+            get
+            {
+                return strPatientName;
+            }
+        }
         public string CureSN { get; private set; }
+
         public string[] SequenceNames { get; private set; }
-        public string SelectedSequenceName { get; set; }
-        public CTemperatureSequence Sequence { get; private set; }
+
+        string strSelectedSeqName;
+        public string SelectedSeqName
+        {
+            get
+            {
+                return strSelectedSeqName;
+            }
+            private set
+            {
+                strSelectedSeqName = value;
+                RaisePropertyChanged("SelectedSeqName");
+            }
+        }
+
+        CTemperatureSequence seq;
+        public CTemperatureSequence Sequence
+        {
+            private set
+            {
+                seq = value;
+                RaisePropertyChanged("Sequence");
+            }
+            get
+            {
+                return seq;
+            }
+
+        }
+
         public bool Result { get; set; }
 
         public ViewModelNewCureSetup()
@@ -23,7 +67,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
         }
         
         /// <summary>
-        /// 启动一个加载参数的线程
+        /// 启动一个加载SequenceNames和生成CureSN的线程
         /// </summary>
         /// <param name="param"></param>
         public void LoadParameters()
@@ -62,7 +106,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                 }
             }).Start();
 
-            this.SelectedSequenceName = "";
+            this.SelectedSeqName = null;
             this.Sequence = null;
             this.PatientName = "";
             this.Result = false;
@@ -82,7 +126,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                 if (db.GetTemperatureSequence(SequenceName, out _Sequence))
                 {
                     this.Sequence = _Sequence;
-                    RaisePropertyChanged("Sequence");
+                    if (_Sequence == null)
+                        this.SelectedSeqName = "";
+                    else
+                        this.SelectedSeqName = _Sequence.SequenceName;
                 }
                 else
                 {

@@ -16,11 +16,9 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         string strSqlServerUser;
         string strSqlServerPassword;
         string[] strBloodType;
-        string strVideoDevice;
         string strStationName;
         string strSystemUserName;
         string strSystemIP;
-        string strVideoClipSavePath;
         double dblTargetTemperature;
         string strZoneCode;
         int intTempTuneSilence;
@@ -38,6 +36,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         string strLoginPassword;
         int intMaxCureBandServieTime;
         string strCompleteVoiceFilePrefix;
+        int intMaxCureTimeAllowed;
         #endregion
 
         #region Constructors
@@ -73,6 +72,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             this.CDKEY = cfg.AppSettings.Settings["CDKEY"].Value;
            
             this.LastCureDuration = Convert.ToInt32(cfg.AppSettings.Settings["LastCureDuration"].Value);
+            this.MaxCureTimeAllowed = Convert.ToInt32(cfg.AppSettings.Settings["MaxCureTimeAllowed"].Value);
 
             /* 返回程序版本号 */
             Version ApplicationVersion = new Version(Application.ProductVersion);
@@ -114,6 +114,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             this.CDKEY_DaysLeft = Cloned.CDKEY_DaysLeft;
 
             this.LastCureDuration = Cloned.LastCureDuration;
+            this.MaxCureTimeAllowed = Cloned.MaxCureTimeAllowed;
 
             /* 获取设备使用时长 */
             Int64 duration;
@@ -500,6 +501,24 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         }
 
         /// <summary>
+        /// Get or return the max curing time allowed
+        /// The typically value is 60 minutes
+        /// </summary>
+        public int MaxCureTimeAllowed
+        {
+            set
+            {
+                intMaxCureTimeAllowed = value;
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("MaxCureTimeAllowed"));
+            }
+            get
+            {
+                return intMaxCureTimeAllowed;
+            }
+        }
+
+        /// <summary>
         /// 设置或返回高压发生器电压档位
         /// </summary>
         public int HVGLevel
@@ -601,7 +620,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             cfg.AppSettings.Settings["CDKEY"].Value = this.CDKEY;
 
             cfg.AppSettings.Settings["LastCureDuration"].Value = this.LastCureDuration.ToString();
-
+            cfg.AppSettings.Settings["MaxCureTimeAllowed"].Value = this.MaxCureTimeAllowed.ToString();
             /* 高压发生器电压档位 */
             cfg.AppSettings.Settings["HVGLevel"].Value = this.HVGLevel.ToString();
 
@@ -653,6 +672,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                 (this.CDKEY_DaysLeft == Config.CDKEY_DaysLeft) &&
                 (this.CDKEY_Expired == Config.CDKEY_Expired) &&
                 (this.LastCureDuration == Config.LastCureDuration) &&
+                (this.MaxCureTimeAllowed == Config.MaxCureTimeAllowed) &&
                 (this.HVGLevel == Config.HVGLevel) &&
                 (this.MaxCureBandServieTime == Config.MaxCureBandServieTime) &&
                 (this.CompleteVoiceFilePrefix == Config.CompleteVoiceFilePrefix);
@@ -690,6 +710,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             this.CDKEY_DaysLeft = NewConfig.CDKEY_DaysLeft;
 
             this.LastCureDuration = NewConfig.LastCureDuration;
+            this.MaxCureTimeAllowed = NewConfig.MaxCureTimeAllowed;
 
             this.HVGLevel = NewConfig.HVGLevel;
 

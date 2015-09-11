@@ -33,7 +33,7 @@
                             <dxc:AxisLabel TextPattern="{}{A:t}"/>
                         </dxc:AxisX2D.Label>
                         <dxc:AxisX2D.DateTimeScaleOptions>
-                            <dxc:ManualDateTimeScaleOptions MeasureUnit="Second" AutoGrid="False" GridAlignment="Second" GridSpacing="100" />
+                            <dxc:ManualDateTimeScaleOptions MeasureUnit="Second" AutoGrid="True" GridAlignment="Second" GridSpacing="100" />
                         </dxc:AxisX2D.DateTimeScaleOptions>
                     </dxc:AxisX2D>
                 </dxc:XYDiagram2D.AxisX>

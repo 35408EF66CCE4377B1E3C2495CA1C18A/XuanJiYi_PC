@@ -205,6 +205,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
         public bool GetTemperatureSequence(string SequenceName, out CTemperatureSequence SequenceInstance)
         {
             SequenceInstance = new CTemperatureSequence();
+
             bool ret = false;
             using (MySqlCommand cmd = new MySqlCommand() { CommandTimeout = COMMAND_TIMEOUT })
             {
@@ -224,7 +225,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                             }
                         }
 
-                        SequenceInstance.SequenceName = SequenceName;
+                        if (SequenceInstance.Count == 0)
+                            SequenceInstance = null;
+                        else
+                            SequenceInstance.SequenceName = SequenceName;
 
                         ret = true;
                     }
