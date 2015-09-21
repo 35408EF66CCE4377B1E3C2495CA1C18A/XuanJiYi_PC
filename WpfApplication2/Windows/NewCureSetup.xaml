@@ -70,14 +70,19 @@
             </i:Interaction.Triggers>
         </ComboBox>
         <Controls:StepAreaAndLineChart Grid.Row="3" d:LayoutOverrides="Width, Height" Grid.ColumnSpan="4" PresettedSequence="{Binding NewCureSetup.Sequence}" RealtimeTemperatureVisible="False"/>
-        <Grid x:Name="grid_LoadHistory" Grid.ColumnSpan="4" Grid.RowSpan="4" Panel.ZIndex="999" Margin="0,0,0,2" Visibility="Hidden">
-            <ListBox x:Name="listBox" ItemTemplate="{DynamicResource DataTemplatePatientList}" ItemsSource="{Binding CureHistory.HistoryCollection}" SnapsToDevicePixels="True" MouseDoubleClick="listBox_MouseDoubleClick">
+        <Grid x:Name="grid_LoadHistory" Grid.ColumnSpan="4" Grid.RowSpan="4" Panel.ZIndex="999" Margin="0,0,0,2" Background="White" Visibility="Hidden">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <ListBox x:Name="listBox" ItemTemplate="{DynamicResource DataTemplatePatientList}" ItemsSource="{Binding CureHistory.HistoryCollection}" SnapsToDevicePixels="True">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="2"/>
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
             </ListBox>
+            <Button Content="加载" Grid.Row="1" Margin="0,2,0,0" Click="Button_Click"/>
         </Grid>
         <Grid Grid.Row="5" Grid.ColumnSpan="4" Margin="0">
             <Grid.ColumnDefinitions>

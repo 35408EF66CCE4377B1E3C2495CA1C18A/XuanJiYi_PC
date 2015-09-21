@@ -302,7 +302,10 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
                         this.CureAction = ENUM_ACTION.Started;
                         // 启动定时线程，开始治疗
                         if (!bgw_cure.IsBusy)    // bgw_cure线程是否已经运行，如果运行，说明是Resume操作
+                        {
+                            this.PresetTemperatureInCurrentStage = this.PresettedSequence[0].TargetTemperature; // 初始温度设置为第一个序列温度 
                             bgw_cure.RunWorkerAsync();
+                        }
                         else // 从暂停状态恢复
                         {
                             /* 启动1s时基定时器 */
@@ -698,6 +701,8 @@ namespace Tai_Shi_Xuan_Ji_Yi.Classes
             /* 
             * 启动控制板 
             */
+            control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.SetTemper, this.Channel, this.PresetTemperatureInCurrentStage));
+            Thread.Sleep(1000);
             control_central.SetControllerWorks(new CCommandQueueItem(CCommandQueueItem.ENUM_CMD.Start, this.Channel, 0));
             Thread.Sleep(2000);
             /*

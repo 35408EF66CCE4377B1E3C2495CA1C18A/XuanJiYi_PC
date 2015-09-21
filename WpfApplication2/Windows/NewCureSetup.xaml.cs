@@ -68,9 +68,13 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             }
         }
 
-        private void listBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if(e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            if (listBox.SelectedIndex < 0)
+            {
+                MessageBox.Show("请先选择一个历史记录", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
             {
                 comboBox.SelectedIndex = -1;
                 CCureHistory item = listBox.SelectedItem as CCureHistory;
@@ -79,7 +83,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
                 //comboBox.SelectedItem = item.SequenceSnapshot.SequenceName;
                 locator.NewCureSetup.LoadSequence(item.SequenceSnapshot.SequenceName);
                 grid_LoadHistory.Visibility = Visibility.Hidden;
-                if(locator.NewCureSetup.Sequence == null)
+                if (locator.NewCureSetup.Sequence == null)
                 {
                     MessageBox.Show(string.Format("预设温度曲线 {0} 不存在", item.SequenceSnapshot.SequenceName), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
