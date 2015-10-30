@@ -20,6 +20,16 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             Unloaded += NewCureSetup_Unloaded;
             
         }
+
+        public NewCureSetup(object Preload)
+        {
+            InitializeComponent();
+
+            //Loaded += NewCureSetup_Loaded;
+            //Unloaded += NewCureSetup_Unloaded;
+
+            btn_LoadFromHistory_Click(this, new RoutedEventArgs());
+        }
         
         private void NewCureSetup_Loaded(object sender, RoutedEventArgs e)
         {
@@ -60,7 +70,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             {
                 grid_LoadHistory.Visibility = Visibility.Visible;
                 ViewModelLocator locator = grid_Root.DataContext as ViewModelLocator;
-                locator.CureHistory.LoadHistorySummary();
+                locator.CureHistory.LoadHistorySummary(70);
             }
             else
             {

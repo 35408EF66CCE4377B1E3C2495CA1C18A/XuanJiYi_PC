@@ -21,7 +21,6 @@ namespace Tai_Shi_Xuan_Ji_Yi.Windows
             Unloaded += HistoryShow_Unloaded;
         }
 
-
         private void HistoryShow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
             Messenger.Default.Register<NotificationMessage<string>>(this, "DBError", msg =>

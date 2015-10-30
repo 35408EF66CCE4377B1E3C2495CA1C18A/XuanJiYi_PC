@@ -8,10 +8,10 @@
     mc:Ignorable="d"
     x:Class="Tai_Shi_Xuan_Ji_Yi.Setting"
     dx:ThemeManager.ThemeName="MetropolisLight"
-    Title="参数设置" Height="183.428" Width="257.295" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="ToolWindow"
+    Title="参数设置" Height="220" Width="300" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="ToolWindow"
     >
     <Grid DataContext="{Binding Source={StaticResource Locator}}">
-        <GroupBox x:Name="groupBox" Header="锁屏密码" Width="250" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <GroupBox x:Name="groupBox" Header="锁屏密码" Width="250" Height="150" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="80"/>

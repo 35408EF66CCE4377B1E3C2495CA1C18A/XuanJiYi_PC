@@ -26,11 +26,18 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
 
         public void LoadHistorySummary()
         {
-            LoadHistorySummary("");
+            LoadHistorySummary("", 0);
         }
 
-        public void LoadHistorySummary(string CureSN)
+        public void LoadHistorySummary(int Limit)
         {
+            LoadHistorySummary("", Limit);
+        }
+
+        public void LoadHistorySummary(string CureSN, int Limit)
+        {
+            int item_cnt = 0;
+
             _realtime_temper_collection.Clear();
             _history_collection.Clear();
 
@@ -61,6 +68,13 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                                         Convert.ToDateTime(dr["updated_time"]),
                                         (byte[])dr["seq_snapshot"]));
                             }));
+
+                            item_cnt++;
+                            if(Limit > 0)
+                            {
+                                if (item_cnt > Limit)
+                                    break;
+                            }
                         }
                     }
                 }
@@ -124,6 +138,11 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                     DataTable dt = null;
                     new Thread(() =>
                     {
+                        Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                        {
+                            // 设置鼠标光标到等待模式
+                            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.AppStarting;
+                        }));
 
                         using (CDatabase db = new CDatabase())
                         {
@@ -161,6 +180,12 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
                                 LoadRTCollectionProgress = 0;
                                 RaisePropertyChanged("LoadRTCollectionProgress");
 
+                                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                                {
+                                    // Set the cursor to the default style
+                                    System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+                                }));
+
                             }
 
                         }
@@ -177,7 +202,7 @@ namespace Tai_Shi_Xuan_Ji_Yi.ViewModel
             {
                 return new RelayCommand<string>(sn => 
                 {
-                    LoadHistorySummary(sn);
+                    LoadHistorySummary(sn, 0);
                 });
             }
         }

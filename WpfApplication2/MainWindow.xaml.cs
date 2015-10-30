@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DevExpress.Xpf.Core;
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -18,12 +19,15 @@ namespace Tai_Shi_Xuan_Ji_Yi
 
         public MainWindow()
         {
+            // 设置鼠标光标到等待模式
+            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.AppStarting;
+            this.Loaded += MainWindow_Loaded;
+
             try
             {
-                InitializeComponent();
+                DXSplashScreen.SetState("正在启动...");
 
-                /* 加载配置文件 */
-                CPublicVariables.Configuration = new CConfiguration();
+                InitializeComponent();
 
                 /* 初始化控制板实例，该实例包含了串口通讯的协议 */
                 control_central = new CControlCentral();
@@ -38,11 +42,28 @@ namespace Tai_Shi_Xuan_Ji_Yi
                 }
                 leftNavBar.ItemCollection = CPublicVariables.CureBandList;
 
+                // pre-load windows to accelerate the openning speed
+                DXSplashScreen.SetState("加载历史记录...");
+                HistoryShow frmh = new HistoryShow();
+                DXSplashScreen.SetState("加载治疗信息...");
+                NewCureSetup fnew = new NewCureSetup(null);
+                DXSplashScreen.SetState("加载设置...");
+                Setting fset = new Setting();
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                // 回复鼠标光标到默认模式
+                System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+            }
+        }
+
+        void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            DXSplashScreen.Close();
         }
 
         /// <summary>
